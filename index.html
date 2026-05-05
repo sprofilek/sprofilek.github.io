@@ -5,84 +5,135 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>S</title>
   <style>
+    /* ベーススタイル */
     body, html {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
       background-color: #050505;
-      overflow: hidden;
-      font-family: 'Helvetica Neue', Arial, sans-serif; /* フォントを追加 */
+      /* 枠が増えてもスクロールできるように hidden を外すか auto に設定 */
+      overflow-x: hidden;
+      overflow-y: auto;
+      font-family: 'Helvetica Neue', Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
     }
 
-    canvas {
-      display: block;
+    /* 背景キャンバスの固定 */
+    #cloudCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
+      z-index: 1;
+      display: block;
     }
 
-    /* 雲の上のオーバーレイ（周辺を暗くする） */
+    /* 周辺を暗くするオーバーレイ */
     .overlay {
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       pointer-events: none;
       background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 20%, rgba(0,0,0,0.85) 100%);
-      z-index: 5; /* Z-indexを調整 */
+      z-index: 5;
     }
 
-    /* --- 文字を置くスペースの設定 --- */
-    .content-container {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 20; /* 雲(10以下)やオーバーレイ(5)より上に配置 */
-      text-align: center;
-      color: white;
-      width: 80%;
-      max-width: 800px;
-      /* 文字を読みやすくするための背景（必要に応じて） */
-      background: rgba(0, 0, 0, 0.2); 
-      backdrop-filter: blur(4px); /* 背景の雲を少しぼかすとお洒落です */
-      padding: 40px;
-      border-radius: 15px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    /* 全体のコンテナ（枠を中央に寄せるための親） */
+    .wrapper {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 0; /* 上下の余白 */
+      box-sizing: border-box;
+      z-index: 10;
     }
+
+    /* 文字を置くエリアのデザイン */
+/* 枠自体の設定 */
+.content-container {
+  width: 85%;
+  max-width: 800px;
+  height: auto;          /* 縦は自動 */
+  display: block;
+  margin: 10px auto;     /* 枠の外側の上下の間隔を少し狭く */
+  
+  /* --- ここが重要：余白を最小限にする --- */
+  padding: 10px 40px;    /* 上下を 40px → 10px に大幅縮小 */
+  
+  color: white;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03); 
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 12px;   /* 枠が薄くなるので角丸も少し控えめに */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+}
+
+/* --- 文字が枠を押し広げないようにマージンをリセット --- */
+.content-container h1 {
+  font-size: 1.8rem;     /* サイズを少し抑える */
+  margin: 5px 0;         /* 上下の勝手な余白を最小限に */
+  letter-spacing: 0.1em;
+}
+
+.content-container p {
+  font-size: 0.95rem;
+  margin: 5px 0;         /* 上下の勝手な余白を最小限に */
+  line-height: 1.4;      /* 行間を少し詰めるとより締まります */
+}
 
     h1 {
-      font-size: 3rem;
-      letter-spacing: 0.2em;
+      font-size: 2.5rem;
+      letter-spacing: 0.15em;
+      margin-top: 0;
       margin-bottom: 20px;
       text-transform: uppercase;
-      text-shadow: 0 0 20px rgba(255,255,255,0.5);
+      text-shadow: 0 0 15px rgba(255,255,255,0.3);
     }
 
     p {
-      font-size: 1.1rem;
+      font-size: 1rem;
       line-height: 1.8;
-      color: rgba(255, 255, 255, 0.8);
+      margin: 0;
+      color: rgba(255, 255, 255, 0.85);
     }
   </style>
 </head>
 <body>
 
-  <!-- 文字を置くエリア -->
-  <div class="content-container">
-    <h1>S</h1>
-    <h2>実体は幻<br>
-    ゼロから、世界を演算する。</h2>
-  </div>
-
+  <!-- 背景要素 -->
   <canvas id="cloudCanvas"></canvas>
   <div class="overlay"></div>
 
+  <!-- コンテンツ要素（ここを編集） -->
+  <div class="wrapper">
+    
+    <!-- 1つ目の枠 -->
+    <div class="content-container">
+      <h1 style="font-size: 100px;">S</h1>
+    </div>
+
+    <div class="content-container">
+      <h1 style="font-size: 40px;">実体は幻<br>ゼロから、世界を演算する。</h1>
+    </div>
+
+    <div class="content-container">
+      <h2 style="font-size: 30;">連絡先<br>sprofilek@ymail.ne.jp</h2>
+    </div>
+
+  </div>
+
   <script>
-    // JS部分は元のコードと同じ（省略せずにそのまま実行してください）
     const canvas = document.getElementById('cloudCanvas');
     const ctx = canvas.getContext('2d');
+
     let width, height;
     let puffs = [];
     const PUFF_COUNT = 120; 
@@ -93,15 +144,20 @@
       canvas.width = width;
       canvas.height = height;
     }
+
     window.addEventListener('resize', resize);
     resize();
 
     const cloudTextures = [];
     const TEXTURE_RADIUS = 128;
+
     const palettes = [
-      { r: 45, g: 50, b: 60 }, { r: 65, g: 70, b: 85 },
-      { r: 25, g: 28, b: 35 }, { r: 55, g: 60, b: 70 },
-      { r: 35, g: 38, b: 45 }, { r: 90, g: 95, b: 105 }
+      { r: 45, g: 50, b: 60 },
+      { r: 65, g: 70, b: 85 },
+      { r: 25, g: 28, b: 35 },
+      { r: 55, g: 60, b: 70 },
+      { r: 35, g: 38, b: 45 },
+      { r: 90, g: 95, b: 105 }
     ];
 
     palettes.forEach(color => {
@@ -109,11 +165,13 @@
       offCanvas.width = TEXTURE_RADIUS * 2;
       offCanvas.height = TEXTURE_RADIUS * 2;
       const offCtx = offCanvas.getContext('2d');
+      
       const grad = offCtx.createRadialGradient(TEXTURE_RADIUS, TEXTURE_RADIUS, 0, TEXTURE_RADIUS, TEXTURE_RADIUS, TEXTURE_RADIUS);
       grad.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 1)`);
       grad.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, 0.6)`); 
       grad.addColorStop(0.8, `rgba(${color.r}, ${color.g}, ${color.b}, 0.2)`); 
       grad.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
+
       offCtx.fillStyle = grad;
       offCtx.beginPath();
       offCtx.arc(TEXTURE_RADIUS, TEXTURE_RADIUS, TEXTURE_RADIUS, 0, Math.PI * 2);
@@ -126,6 +184,7 @@
         this.subPuffs = []; 
         this.init(isInitial);
       }
+
       init(isInitial) {
         this.z = Math.random() * 100 + 20; 
         this.x = isInitial ? Math.random() * width : width + (Math.random() * 300 + 100);
@@ -139,6 +198,7 @@
         this.alpha = isInitial ? Math.random() * 0.5 : 0;
         this.maxAlpha = Math.random() * 0.4 + 0.3; 
         this.scaleY = Math.random() * 0.2 + 0.7;
+
         const numSubPuffs = Math.floor(Math.random() * 4) + 3; 
         this.subPuffs = [];
         for (let i = 0; i < numSubPuffs; i++) {
@@ -150,15 +210,18 @@
             scaleYOffset: (Math.random() - 0.5) * 0.15 
           });
         }
+
         let textureIndex = Math.floor(Math.random() * 5);
         if (Math.random() > 0.85) textureIndex = 5;
         this.texture = cloudTextures[textureIndex];
       }
+
       update() {
         this.x += this.speedX;
         this.y += this.speedY;
         this.rotation += this.rotationSpeed;
         if (this.alpha < this.maxAlpha) this.alpha += 0.006;
+
         this.subPuffs.forEach(subPuff => {
           const s = Math.sin(this.rotationSpeed);
           const c = Math.cos(this.rotationSpeed);
@@ -167,8 +230,10 @@
           subPuff.x = nx;
           subPuff.y = ny;
         });
+
         if (this.x < -this.radius * 2) this.init(false);
       }
+
       draw() {
         this.subPuffs.forEach(subPuff => {
           ctx.save();
@@ -191,14 +256,18 @@
       bgGrad.addColorStop(0, '#0c0e14');   
       bgGrad.addColorStop(0.5, '#14161f'); 
       bgGrad.addColorStop(1, '#1b1e26');   
+
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
+
       puffs.forEach(puff => {
         puff.update();
         puff.draw();
       });
+
       requestAnimationFrame(animate);
     }
+
     animate();
   </script>
 </body>
