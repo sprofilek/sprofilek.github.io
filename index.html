@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cinematic Clouds - With Text</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #050505;
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Arial, sans-serif; /* フォントを追加 */
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 雲の上のオーバーレイ（周辺を暗くする） */
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 20%, rgba(0,0,0,0.85) 100%);
+      z-index: 5; /* Z-indexを調整 */
+    }
+
+    /* --- 文字を置くスペースの設定 --- */
+    .content-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 20; /* 雲(10以下)やオーバーレイ(5)より上に配置 */
+      text-align: center;
+      color: white;
+      width: 80%;
+      max-width: 800px;
+      /* 文字を読みやすくするための背景（必要に応じて） */
+      background: rgba(0, 0, 0, 0.2); 
+      backdrop-filter: blur(4px); /* 背景の雲を少しぼかすとお洒落です */
+      padding: 40px;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h1 {
+      font-size: 3rem;
+      letter-spacing: 0.2em;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      text-shadow: 0 0 20px rgba(255,255,255,0.5);
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.8);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 文字を置くエリア -->
+  <div class="content-container">
+    <h1>S</h1>
+    <h2>実体は幻<br>
+    ゼロから、世界を演算する。</h2>
+  </div>
+
+  <canvas id="cloudCanvas"></canvas>
+  <div class="overlay"></div>
+
+  <script>
+    // JS部分は元のコードと同じ（省略せずにそのまま実行してください）
+    const canvas = document.getElementById('cloudCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let puffs = [];
+    const PUFF_COUNT = 120; 
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const cloudTextures = [];
+    const TEXTURE_RADIUS = 128;
+    const palettes = [
+      { r: 45, g: 50, b: 60 }, { r: 65, g: 70, b: 85 },
+      { r: 25, g: 28, b: 35 }, { r: 55, g: 60, b: 70 },
+      { r: 35, g: 38, b: 45 }, { r: 90, g: 95, b: 105 }
+    ];
+
+    palettes.forEach(color => {
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = TEXTURE_RADIUS * 2;
+      offCanvas.height = TEXTURE_RADIUS * 2;
+      const offCtx = offCanvas.getContext('2d');
+      const grad = offCtx.createRadialGradient(TEXTURE_RADIUS, TEXTURE_RADIUS, 0, TEXTURE_RADIUS, TEXTURE_RADIUS, TEXTURE_RADIUS);
+      grad.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 1)`);
+      grad.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, 0.6)`); 
+      grad.addColorStop(0.8, `rgba(${color.r}, ${color.g}, ${color.b}, 0.2)`); 
+      grad.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
+      offCtx.fillStyle = grad;
+      offCtx.beginPath();
+      offCtx.arc(TEXTURE_RADIUS, TEXTURE_RADIUS, TEXTURE_RADIUS, 0, Math.PI * 2);
+      offCtx.fill();
+      cloudTextures.push(offCanvas);
+    });
+
+    class Puff {
+      constructor(isInitial = false) {
+        this.subPuffs = []; 
+        this.init(isInitial);
+      }
+      init(isInitial) {
+        this.z = Math.random() * 100 + 20; 
+        this.x = isInitial ? Math.random() * width : width + (Math.random() * 300 + 100);
+        this.y = (Math.random() * height) * 1.2 - height * 0.1;
+        this.baseRadius = Math.random() * 180 + 80;
+        this.radius = this.baseRadius * (100 / this.z);
+        this.speedX = -(Math.random() * 0.6 + 0.4) * (100 / this.z);
+        this.speedY = (Math.random() - 0.5) * 0.08; 
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotationSpeed = (Math.random() - 0.5) * 0.002;
+        this.alpha = isInitial ? Math.random() * 0.5 : 0;
+        this.maxAlpha = Math.random() * 0.4 + 0.3; 
+        this.scaleY = Math.random() * 0.2 + 0.7;
+        const numSubPuffs = Math.floor(Math.random() * 4) + 3; 
+        this.subPuffs = [];
+        for (let i = 0; i < numSubPuffs; i++) {
+          this.subPuffs.push({
+            x: (Math.random() - 0.5) * this.radius * 0.8, 
+            y: (Math.random() - 0.5) * this.radius * 0.5, 
+            size: Math.random() * 0.6 + 0.4, 
+            alpha: Math.random() * 0.4 + 0.6, 
+            scaleYOffset: (Math.random() - 0.5) * 0.15 
+          });
+        }
+        let textureIndex = Math.floor(Math.random() * 5);
+        if (Math.random() > 0.85) textureIndex = 5;
+        this.texture = cloudTextures[textureIndex];
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.rotation += this.rotationSpeed;
+        if (this.alpha < this.maxAlpha) this.alpha += 0.006;
+        this.subPuffs.forEach(subPuff => {
+          const s = Math.sin(this.rotationSpeed);
+          const c = Math.cos(this.rotationSpeed);
+          const nx = subPuff.x * c - subPuff.y * s;
+          const ny = subPuff.x * s + subPuff.y * c;
+          subPuff.x = nx;
+          subPuff.y = ny;
+        });
+        if (this.x < -this.radius * 2) this.init(false);
+      }
+      draw() {
+        this.subPuffs.forEach(subPuff => {
+          ctx.save();
+          ctx.globalAlpha = this.alpha * subPuff.alpha;
+          ctx.translate(this.x + subPuff.x, this.y + subPuff.y);
+          ctx.rotate(this.rotation); 
+          ctx.scale(1, (this.scaleY + subPuff.scaleYOffset)); 
+          const subPuffRadius = this.radius * subPuff.size;
+          ctx.drawImage(this.texture, -subPuffRadius, -subPuffRadius, subPuffRadius * 2, subPuffRadius * 2);
+          ctx.restore();
+        });
+      }
+    }
+
+    for (let i = 0; i < PUFF_COUNT; i++) puffs.push(new Puff(true));
+    puffs.sort((a, b) => b.z - a.z);
+
+    function animate() {
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+      bgGrad.addColorStop(0, '#0c0e14');   
+      bgGrad.addColorStop(0.5, '#14161f'); 
+      bgGrad.addColorStop(1, '#1b1e26');   
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, width, height);
+      puffs.forEach(puff => {
+        puff.update();
+        puff.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
