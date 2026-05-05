@@ -76,6 +76,19 @@
   box-sizing: border-box;
 }
 
+/* メールリンクのスタイル */
+.mail-link {
+  text-decoration: none; /* 下線を消す */
+  color: inherit;        /* 文字色を親要素(白)に合わせる */
+  display: block;        /* リンクの当たり判定を広げる */
+  transition: opacity 0.2s;
+}
+
+/* マウスを乗せた時に少し反応させる（親切設計） */
+.mail-link:hover {
+  opacity: 0.7;
+}
+
 /* --- 文字が枠を押し広げないようにマージンをリセット --- */
 .content-container h1 {
   font-size: 1.8rem;     /* サイズを少し抑える */
@@ -125,7 +138,13 @@
     </div>
 
     <div class="content-container">
-      <h2 style="font-size: 30;">連絡先<br>sprofilek@ymail.ne.jp</h2>
+      <h2 style="font-size: 30;">連絡先</h2>
+
+      <a href="mailto:sprofilek@ymail.ne.jp" class="mail-link">
+    <h2>sprofilek@ymail.ne.jp</h2>
+    <p style="font-size: 0.8rem;">クリックするとメールを作成できます。</p>
+  </a>
+  
     </div>
 
   </div>
