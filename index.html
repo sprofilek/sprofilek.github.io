@@ -138,13 +138,16 @@
       <h1 style="font-size: 40px;">実体は幻<br>ゼロから、世界を演算する。</h1>
     </div>
 
-    <div class="content-container">
-      <h2 style="font-size: 30;">連絡先</h2>
-
-      <a href="mailto:sprofilek@ymail.ne.jp" class="mail-link">
-    <h2>sprofilek@ymail.ne.jp</h2>
-    <p style="font-size: 0.8rem;">クリックするとメールを作成できます。</p>
-  </a>
+<div class="content-container" onclick="copyAndMail('sprofilek@ymail.ne.jp')" style="cursor: pointer;">
+  <h2 style="font-size: 24px; margin: 5px 0;">連絡先</h2>
+  
+  <!-- IDを付与して、コピー時に文字が変わる演出を加えられるようにします -->
+  <h2 id="email-address" style="font-size: 20px; margin: 5px 0;">sprofilek@ymail.ne.jp</h2>
+  
+  <p style="font-size: 0.8rem; margin: 5px 0; color: rgba(255,255,255,0.6);">
+    クリックでコピー ＆ メールを作成
+  </p>
+</div>
   
     </div>
 
@@ -289,6 +292,31 @@
     }
 
     animate();
+
+function copyAndMail(email) {
+  // クリップボードにコピー
+  navigator.clipboard.writeText(email).then(() => {
+    // 成功時の視覚フィードバック
+    const emailDisplay = document.getElementById('email-address');
+    const originalText = emailDisplay.innerText;
+    
+    emailDisplay.innerText = "コピーされました"; // 文字を入れ替える
+    emailDisplay.style.color = "#00ffcc"; // 色を鮮やかにする
+    
+    // 1秒後に元の表示に戻す
+    setTimeout(() => {
+      emailDisplay.innerText = originalText;
+      emailDisplay.style.color = "";
+    }, 1000);
+
+    // メーラーを起動
+    window.location.href = `mailto:${email}`;
+  }).catch(err => {
+    // コピーに失敗してもメールだけは起動させる
+    window.location.href = `mailto:${email}`;
+  });
+}
+
   </script>
 </body>
 </html>
