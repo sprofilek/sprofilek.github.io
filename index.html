@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>S</title>
-  <style>
+<style>
     /* ベーススタイル */
     body, html {
       margin: 0;
@@ -68,44 +68,55 @@
       transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
     }
 
-/* 横並びの中にある枠専用の設定（ここを微調整） */
-.container-row .content-container {
-  flex: 1;
-  width: auto;
-  /* 最小幅を 300px から 200px 程度に下げることで、親枠の中でも横並びを維持します */
-  min-width: 180px; 
-  max-width: none;
-  margin: 0;
-  cursor: pointer;
-  padding: 15px 10px; /* 横並び時は内側の余白を少しタイトに */
-}
+    /* --- 横並びボタンエリアの制御 --- */
+    .container-row {
+      display: flex;
+      flex-wrap: nowrap;     /* PC/タブレットでは1行を維持 */
+      justify-content: center;
+      gap: 15px;
+      width: 100%;
+      max-width: none;
+      margin: 10px auto 0;
+    }
 
-/* 親の row 自体も、親枠の padding に負けないよう幅を調整 */
-.container-row {
-  display: flex;
-  flex-wrap: nowrap;     /* 強制的に横並びを維持したい場合は nowrap に */
-  justify-content: center;
-  gap: 15px;             /* 隙間を少し詰めると並びやすくなります */
-  width: 100%;           /* 親枠の 100% */
-  max-width: none;       /* 個別の制限を解除 */
-  margin: 10px auto 0;
-}
+    /* 横並びボタン専用の設定 */
+    .container-row .content-container {
+      flex: 1;
+      width: auto;
+      min-width: 150px;      /* 並びやすさを優先 */
+      max-width: none;
+      margin: 0;
+      cursor: pointer;
+      padding: 15px 5px;     /* 横幅を稼ぐために内側余白をタイトに */
+      white-space: nowrap;   /* 文字を1行に固定 */
+      overflow: hidden;
+    }
 
-    /* --- ホバーエフェクト（ボタン系のみに適用） --- */
+    /* ボタン内の文字サイズ自動調整 */
+    .container-row h2 {
+      font-size: clamp(0.8rem, 2.3vw, 1.1rem) !important;
+      margin: 0 !important;
+    }
+    
+    .container-row .status-badge {
+      font-size: clamp(0.6rem, 1.8vw, 0.75rem);
+      white-space: nowrap;
+    }
+
+    /* --- ホバーエフェクト（ボタンのみ） --- */
     .content-container[onclick]:hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: rgba(255, 255, 255, 0.3);
-      transform: translateY(-4px); /* 上に少し浮く */
+      transform: translateY(-4px);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
-    /* クリックした瞬間の沈み込み */
     .content-container[onclick]:active {
       transform: translateY(-1px);
       transition: 0.1s;
     }
 
-    /* 文字スタイル */
+    /* --- 文字スタイル --- */
     h1, h2, h3 {
       margin: 10px 0;
       letter-spacing: 0.15em;
@@ -125,81 +136,87 @@
       letter-spacing: 0.05em;
     }
 
-/* スマホサイズ（本当に幅が狭い時）だけは縦並びにする */
+    /* --- 流れるタグ（Ticker）の設定 --- */
+    .ticker-wrapper {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-height: 40px;
+    }
+
+    .ticker-label {
+      flex-shrink: 0;
+      width: 80px;
+      font-weight: bold;
+      color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 0 10px;
+      margin-right: 10px;
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      line-height: 1;
+    }
+
+    .ticker-container {
+      flex-grow: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+    }
+
+    .ticker-text {
+      display: inline-block;
+      padding-left: 100%;
+      animation: scroll-left 15s linear infinite;
+      font-size: 1.1rem;
+    }
+
+    @keyframes scroll-left {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* 入れ子枠（nested-box） */
+    .nested-box {
+      width: 100% !important;
+      max-width: none !important;
+      padding: 10px 0 !important;
+      margin: 15px 0 0 0 !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* --- スマホサイズ（480px以下）の最終調整 --- */
+    @media (max-width: 480px) {
+      .container-row {
+        flex-wrap: wrap; /* スマホのみ縦並びを許可 */
+      }
+      .container-row .content-container {
+        min-width: 100%;
+        padding: 15px 10px;
+      }
+      .content-container {
+        width: 92%;
+        padding: 20px 25px; /* 全体の余白を少し削る */
+      }
+      h1 { font-size: clamp(2rem, 15vw, 6rem) !important; }
+    }
+
+    /* 指定した2行以外で改行させない設定 */
+.dual-line {
+  display: block;
+  white-space: nowrap;      /* 自動改行を禁止 */
+  font-size: clamp(1.2rem, 5vw, 2.5rem) !important; /* 画面幅に合わせて文字自体を小さくする */
+}
+
+/* スマホ等でどうしても入り切らない場合に備えての調整 */
 @media (max-width: 480px) {
-  .container-row {
-    flex-wrap: wrap;     /* スマホでは折り返しを許可 */
+  .dual-line {
+    letter-spacing: 0.05em; /* 文字間隔を少し詰めて1行の長さを抑える */
   }
-  .container-row .content-container {
-    min-width: 100%;     /* スマホでは1つで横幅いっぱい */
-  }
-}
-
- /* 入れ子枠の中を横並びにする */
-.ticker-wrapper {
-  display: flex;
-  align-items: center; /* 垂直方向の中央揃え */
-  width: 100%;
-}
-
-/* 「タグ」という固定文字のスタイル */
-.ticker-label {
-  flex-shrink: 0;
-  width: 80px;
-  font-weight: bold;
-  color: rgba(255, 255, 255, 0.9);
-  
-  /* --- 中央寄せのための設定 --- */
-  display: flex;
-  justify-content: center; /* 水平方向の中央 */
-  align-items: center;     /* 垂直方向の中央 */
-  
-  text-align: center;      /* テキスト自体を中央揃え */
-  padding: 0 10px;         /* 左右の余白 */
-  margin-right: 10px;
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
-  
-  /* 枠の高さに合わせるための設定 */
-  line-height: 1;          /* 余計な行間を排除 */
-}
-
-/* 親要素（念のため確認） */
-.ticker-wrapper {
-  display: flex;
-  align-items: center;     /* これで子要素同士の高さ中央が揃います */
-  width: 100%;
-  min-height: 40px;        /* 枠の高さを少し確保すると中央感が際立ちます */
-}
-
-/* 流れるエリア（残りの幅をすべて使う） */
-.ticker-container {
-  flex-grow: 1;         /* 残りのスペースをすべて占有 */
-  overflow: hidden;
-  white-space: nowrap;
-  position: relative;
-  /* 左右をフェードアウトさせる（文字が消える演出） */
-  mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-}
-
-.ticker-text {
-  display: inline-block;
-  padding-left: 100%;   /* 右端からスタート */
-  animation: scroll-left 15s linear infinite;
-  font-size: 1.1rem;
-}
-
-@keyframes scroll-left {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-100%); }
-}
-
-/* 入れ子枠（nested-box）自体の調整 */
-.nested-box {
-  width: 100% !important;
-  max-width: none !important;
-  padding: 10px 0 !important;
-  margin: 15px 0 0 0 !important; /* Aの下に配置 */
 }
 
   </style>
@@ -231,17 +248,20 @@
   </div>
 </div>
 
-    <div class="content-container">
-      <h1 style="font-size: 40px; line-height: 1.3;">実体は幻<br>ゼロから、世界を演算する。</h1>
-    </div>
+<div class="content-container">
+  <!-- クラス dual-line を追加 -->
+  <h1 class="dual-line" style="font-size: 40px; line-height: 1.3;">
+    実体は幻<br>ゼロから、世界を演算する。
+  </h1>
+</div>
 
 <!-- 連絡先情報を1つにまとめた枠 -->
 <div class="content-container">
   <h2 style="font-size: 30px;">連絡先 / Connect</h2>
   
   <!-- 【追加】メールアドレス表示専用の枠 -->
-  <div class="content-container" style="width: 100%; max-width: none; background: rgba(255, 255, 255, 0.05); margin: 20px 0;">
-    <h2 style="font-size: 25px;">sprofilek@ymail.ne.jp</h2>
+<div class="content-container" style="width: 100%; max-width: none; background: rgba(255, 255, 255, 0.05); margin: 20px 0; padding: 15px 10px; box-sizing: border-box;">
+  <h2 style="font-size: clamp(16px, 4vw, 25px); margin: 0; word-break: break-all;">sprofilek@ymail.ne.jp</h2>
   </div>
 
   <!-- アクションボタン（横並びエリア） -->
