@@ -66,12 +66,13 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-sizing: border-box;
       transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+      -webkit-tap-highlight-color: transparent; /* タップ時のハイライトを消去 */
     }
 
     /* --- 横並びボタンエリアの制御 --- */
     .container-row {
       display: flex;
-      flex-wrap: nowrap;     /* PC/タブレットでは1行を維持 */
+      flex-wrap: nowrap;
       justify-content: center;
       gap: 15px;
       width: 100%;
@@ -79,20 +80,18 @@
       margin: 10px auto 0;
     }
 
-    /* 横並びボタン専用の設定 */
     .container-row .content-container {
       flex: 1;
       width: auto;
-      min-width: 150px;      /* 並びやすさを優先 */
+      min-width: 150px;
       max-width: none;
       margin: 0;
       cursor: pointer;
-      padding: 15px 5px;     /* 横幅を稼ぐために内側余白をタイトに */
-      white-space: nowrap;   /* 文字を1行に固定 */
+      padding: 15px 5px;
+      white-space: nowrap;
       overflow: hidden;
     }
 
-    /* ボタン内の文字サイズ自動調整 */
     .container-row h2 {
       font-size: clamp(0.8rem, 2.3vw, 1.1rem) !important;
       margin: 0 !important;
@@ -103,12 +102,14 @@
       white-space: nowrap;
     }
 
-    /* --- ホバーエフェクト（ボタンのみ） --- */
-    .content-container[onclick]:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.3);
-      transform: translateY(-4px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    /* --- ホバーエフェクト（マウス操作時のみ適用してスマホの残存を防止） --- */
+    @media (hover: hover) {
+      .content-container[onclick]:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
     }
 
     .content-container[onclick]:active {
@@ -180,7 +181,6 @@
       100% { transform: translateX(-100%); }
     }
 
-    /* 入れ子枠（nested-box） */
     .nested-box {
       width: 100% !important;
       max-width: none !important;
@@ -189,10 +189,9 @@
       background: rgba(255, 255, 255, 0.05) !important;
     }
 
-    /* --- スマホサイズ（480px以下）の最終調整 --- */
     @media (max-width: 480px) {
       .container-row {
-        flex-wrap: wrap; /* スマホのみ縦並びを許可 */
+        flex-wrap: wrap;
       }
       .container-row .content-container {
         min-width: 100%;
@@ -200,26 +199,23 @@
       }
       .content-container {
         width: 92%;
-        padding: 20px 25px; /* 全体の余白を少し削る */
+        padding: 20px 25px;
       }
       h1 { font-size: clamp(2rem, 15vw, 6rem) !important; }
     }
 
-    /* 指定した2行以外で改行させない設定 */
-.dual-line {
-  display: block;
-  white-space: nowrap;      /* 自動改行を禁止 */
-  font-size: clamp(1.2rem, 5vw, 2.5rem) !important; /* 画面幅に合わせて文字自体を小さくする */
-}
+    .dual-line {
+      display: block;
+      white-space: nowrap;
+      font-size: clamp(1.2rem, 5vw, 2.5rem) !important;
+    }
 
-/* スマホ等でどうしても入り切らない場合に備えての調整 */
-@media (max-width: 480px) {
-  .dual-line {
-    letter-spacing: 0.05em; /* 文字間隔を少し詰めて1行の長さを抑える */
-  }
-}
-
-  </style>
+    @media (max-width: 480px) {
+      .dual-line {
+        letter-spacing: 0.05em;
+      }
+    }
+</style>
 </head>
 <body>
 
@@ -281,8 +277,7 @@
 </div>
   </div>
 
-  <script>
-    // --- 背景アニメーション (ロジックは変更なし) ---
+<script>
     const canvas = document.getElementById('cloudCanvas');
     const ctx = canvas.getContext('2d');
     let width, height;
@@ -403,18 +398,23 @@
     }
     animate();
 
-    // --- インタラクション用関数 ---
+    // --- インタラクション用タイマー管理 ---
+    let emailTimer = null;
+    let copyTimer = null;
+
     function copyAndMail(email) {
+      if (emailTimer) clearTimeout(emailTimer);
       navigator.clipboard.writeText(email).then(() => {
         const emailDisplay = document.getElementById('email-address');
-        const originalText = emailDisplay.innerText;
+        const originalText = "メールを作成";
         
         emailDisplay.innerText = "コピーしました";
         emailDisplay.style.color = "#00ffcc";
         
-        setTimeout(() => {
+        emailTimer = setTimeout(() => {
           emailDisplay.innerText = originalText;
-          emailDisplay.style.color = "";
+          emailDisplay.style.color = "#ffffff";
+          emailTimer = null;
           window.location.href = `mailto:${email}`;
         }, 600);
       }).catch(() => {
@@ -423,24 +423,26 @@
     }
 
     function pureCopy(text) {
+      if (copyTimer) clearTimeout(copyTimer);
       navigator.clipboard.writeText(text).then(() => {
         const targetText = document.getElementById('copy-target');
         const statusBadge = document.getElementById('copy-status');
-        const originalColor = targetText.style.color;
+        const originalText = "アドレスをコピー";
 
         targetText.style.color = "#00ffcc";
         targetText.innerText = "コピーしました";
         statusBadge.innerText = "クリップボードに保存しました";
         statusBadge.style.opacity = "1";
 
-        setTimeout(() => {
-          targetText.style.color = originalColor;
-          targetText.innerText = "アドレスをコピー";
+        copyTimer = setTimeout(() => {
+          targetText.style.color = "#ffffff";
+          targetText.innerText = originalText;
           statusBadge.innerText = "クリップボードに保存します";
           statusBadge.style.opacity = "0.6";
+          copyTimer = null;
         }, 1500);
       });
     }
-  </script>
+</script>
 </body>
 </html>
